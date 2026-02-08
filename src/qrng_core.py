@@ -1,5 +1,46 @@
 import numpy as np
+from scipy import linalg
 from typing import Tuple
+
+class ZCAWhitening:
+    """
+    Implements Zero-phase Component Analysis (ZCA) whitening.
+    ZCA whitening transforms the data such that the covariance matrix 
+    becomes an identity matrix, effectively removing correlations 
+    while staying as close as possible to the original data.
+    """
+    def __init__(self, epsilon: float = 1e-5):
+        self.epsilon = epsilon
+        self.zca_matrix = None
+        self.mean = None
+
+    def fit(self, x: np.ndarray):
+        """
+        Computes the ZCA transformation matrix from the input data.
+        X should be of shape (n_samples, n_features)
+        """
+        self.mean = np.mean(x, axis=0)
+        x_centered = x - self.mean
+        
+        # Compute covariance matrix
+        cov = np.dot(x_centered.T, x_centered) / (x_centered.shape[0] - 1)
+        
+        # Singular Value Decomposition
+        u, s, v = linalg.svd(cov)
+        
+        # ZCA Matrix: U * diag(1/sqrt(S + epsilon)) * U^T
+        self.zca_matrix = np.dot(u, np.dot(np.diag(1.0 / np.sqrt(s + self.epsilon)), u.T))
+        return self
+
+    def transform(self, x: np.ndarray) -> np.ndarray:
+        """
+        Applies the ZCA whitening transformation.
+        """
+        if self.zca_matrix is None:
+            raise ValueError("ZCAWhitening must be fit before transform.")
+        
+        x_centered = x - self.mean
+        return np.dot(x_centered, self.zca_matrix)
 
 class VacuumFluctuationSimulator:
     """
@@ -47,6 +88,17 @@ class VacuumFluctuationSimulator:
 
 if __name__ == "__main__":
     simulator = VacuumFluctuationSimulator()
-    raw_data = simulator.generate_raw_quadratures(1000)
-    print(f"Generated {len(raw_data)} samples of vacuum fluctuations.")
-    print(f"Mean: {np.mean(raw_data):.4f}, Std: {np.std(raw_data):.4f}")
+    n_samples = 10000
+    n_features = 4  # Treat consecutive samples as features for whitening
+    
+    raw_data = simulator.generate_raw_quadratures(n_samples * n_features).reshape(n_samples, n_features)
+    
+    print(f"Original Mean: {np.mean(raw_data):.4f}")
+    print(f"Original Covariance (subset):\n{np.cov(raw_data.T)}")
+    
+    zca = ZCAWhitening()
+    zca.fit(raw_data)
+    whitened_data = zca.transform(raw_data)
+    
+    print(f"\nWhitened Mean: {np.mean(whitened_data):.4f}")
+    print(f"Whitened Covariance (should be identity):\n{np.cov(whitened_data.T)}")
