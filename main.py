@@ -19,7 +19,10 @@ def main():
     
     # 1 byte = 8 bits. We need num_bytes * 8 bits.
     # To use ZCA, we need samples in (samples, features) shape.
-    n_samples = (args.num_bytes * 8) // args.features + 1
+    # To use ZCA, we need samples in (samples, features) shape.
+    # Each sample will yield N bits (where N is the bit depth of quantization).
+    # Since we use 8-bit quantization, 1 sample = 8 bits = 1 byte.
+    n_samples = args.num_bytes // args.features + (1 if args.num_bytes % args.features != 0 else 0)
     total_samples = n_samples * args.features
     
     # 1. Generate Raw Quadrature Data
@@ -30,8 +33,14 @@ def main():
     whitened_data = zca.transform(raw_data).flatten()
     
     # 3. Quantize and Extract Bits
+    # Quantize only what we need (approximately)
     quantized = simulator.quantize_data(whitened_data, bits=8)
-    bitstream = simulator.extract_bits(quantized[:args.num_bytes], bits_per_sample=8)
+    
+    # Extract bits from the quantized bytes
+    bitstream = simulator.extract_bits(quantized)
+    
+    # Slice bitstream to exact number of requested bits (num_bytes * 8)
+    bitstream = bitstream[:args.num_bytes * 8]
     
     # Convert bitstream to actual bytes
     byte_array = np.packbits(bitstream)
