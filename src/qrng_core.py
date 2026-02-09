@@ -22,14 +22,16 @@ class ZCAWhitening:
         self.mean = np.mean(x, axis=0)
         x_centered = x - self.mean
         
-        # Compute covariance matrix
-        cov = np.dot(x_centered.T, x_centered) / (x_centered.shape[0] - 1)
+        # Compute covariance matrix with safety check
+        cov = np.cov(x_centered, rowvar=False)
         
         # Singular Value Decomposition
         u, s, v = linalg.svd(cov)
         
         # ZCA Matrix: U * diag(1/sqrt(S + epsilon)) * U^T
-        self.zca_matrix = np.dot(u, np.dot(np.diag(1.0 / np.sqrt(s + self.epsilon)), u.T))
+        # Using a more robust epsilon handling
+        s_inv = 1.0 / np.sqrt(s + self.epsilon)
+        self.zca_matrix = np.dot(u, np.dot(np.diag(s_inv), u.T))
         return self
 
     def transform(self, x: np.ndarray) -> np.ndarray:
@@ -39,8 +41,7 @@ class ZCAWhitening:
         if self.zca_matrix is None:
             raise ValueError("ZCAWhitening must be fit before transform.")
         
-        x_centered = x - self.mean
-        return np.dot(x_centered, self.zca_matrix)
+        return np.dot(x - self.mean, self.zca_matrix)
 
 class VacuumFluctuationSimulator:
     """
@@ -64,16 +65,18 @@ class VacuumFluctuationSimulator:
 
     def quantize_data(self, data: np.ndarray, bits: int = 8) -> np.ndarray:
         """
-        Digitizes the analog quantum signal into N-bit integers.
+        Digitizes the analog quantum signal into N-bit integers using vectorized normalization.
         """
-        # Normalize to range of bit depth
-        min_val, max_val = data.min(), data.max()
+        # Linear quantization
+        min_val = np.min(data)
+        max_val = np.max(data)
+        
         if max_val == min_val:
             return np.zeros(data.shape, dtype=np.uint8)
             
-        normalized = (data - min_val) / (max_val - min_val)
-        quantized = (normalized * (2**bits - 1)).astype(np.uint64)
-        return quantized
+        # Vectorized rescaling to [0, 2^bits - 1]
+        quantized = ((data - min_val) / (max_val - min_val) * (2**bits - 1))
+        return quantized.astype(np.uint8)
 
     def extract_bits(self, quantized_data: np.ndarray, bits_per_sample: int = 8) -> np.ndarray:
         """
