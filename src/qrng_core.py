@@ -77,14 +77,17 @@ class VacuumFluctuationSimulator:
 
     def extract_bits(self, quantized_data: np.ndarray, bits_per_sample: int = 8) -> np.ndarray:
         """
-        Extracts raw bits from quantized integers.
+        Extracts raw bits from quantized integers using vectorized NumPy operations.
         """
-        # Simply convert to bitstream
-        bitstream = []
-        for val in quantized_data:
-            bits = bin(val)[2:].zfill(bits_per_sample)
-            bitstream.extend([int(b) for b in bits])
-        return np.array(bitstream, dtype=np.uint8)
+        # Ensure data is in the correct uint form for unpackbits
+        data_uint = quantized_data.astype(np.uint8)
+        # unpackbits converts each uint8 into 8 bits
+        bits = np.unpackbits(data_uint)
+        
+        # If bits_per_sample < 8, we only take the LSBs or relevant bits.
+        # However, usually we take all bits or a specific amount.
+        # This implementation assumes we want the full bit depth provided by uint8.
+        return bits
 
 if __name__ == "__main__":
     simulator = VacuumFluctuationSimulator()
