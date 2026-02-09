@@ -45,12 +45,13 @@ def block_frequency_test(bitstream: np.ndarray, block_size: int = 128) -> float:
     if n_blocks == 0:
         return 0.0
         
-    proportions = []
-    for i in range(n_blocks):
-        block = bitstream[i * block_size : (i + 1) * block_size]
-        proportions.append(np.sum(block) / block_size)
+    # Trim bitstream to match integer number of blocks
+    trimmed_stream = bitstream[:n_blocks * block_size]
+    # Reshape and compute proportions in parallel
+    blocks = trimmed_stream.reshape(n_blocks, block_size)
+    proportions = np.sum(blocks, axis=1) / block_size
     
-    chi_square = 4 * block_size * np.sum((np.array(proportions) - 0.5)**2)
+    chi_square = 4 * block_size * np.sum((proportions - 0.5)**2)
     p_value = special.gammaincc(n_blocks / 2, chi_square / 2)
     return p_value
 
