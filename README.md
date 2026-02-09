@@ -14,9 +14,9 @@ To ensure high entropy and zero correlation (required for cryptographic applicat
 ## 🚀 Features
 
 - **Quantum Physics Simulation**: Models the Gaussian distribution of vacuum fluctuations.
-- **Advanced Post-Processing**: ZCA whitening to eliminate spectral bias and auto-correlation.
-- **NIST SP 800-22 Suite**: Built-in implementations of Monobit, Runs, and Block Frequency tests.
-- **High Performance**: Optimized using `numpy` and `scipy`.
+- **Advanced Post-Processing**: Optimized ZCA whitening to eliminate spectral bias and auto-correlation with improved numerical stability.
+- **Vectorized NIST SP 800-22 Suite**: High-performance implementations of Monobit, Runs, and Block Frequency tests.
+- **High Performance**: Vectorized bit extraction and statistical testing using NumPy `unpackbits` and efficient reshaping.
 
 ## 🛠️ Installation
 
