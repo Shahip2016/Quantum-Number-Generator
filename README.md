@@ -3,20 +3,21 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A high-performance Quantum Random Number Generator (QRNG) simulator based on **vacuum fluctuation homodyne detection** and **ZCA whitening** post-processing, following latest 2024-2025 research.
-
-## 🌌 Overview
-
-Modern QRNGs leverage the inherent unpredictability of quantum mechanics. This implementation simulates the measurement of vacuum state quadratures—a fundamental quantum phenomenon where even in "empty" space, electromagnetic field fluctuations exist.
-
-To ensure high entropy and zero correlation (required for cryptographic applications), we implement **Zero-phase Component Analysis (ZCA) whitening**, a state-of-the-art post-processing technique that decorrelates raw quantum signals while preserving their statistical properties.
+A high-performance Quantum Random Number Generator (QRNG) simulator based on **vacuum fluctuation homodyne detection** and **ZCA whitening** post-processing.
 
 ## 🚀 Features
 
 - **Quantum Physics Simulation**: Models the Gaussian distribution of vacuum fluctuations.
-- **Advanced Post-Processing**: Optimized ZCA whitening to eliminate spectral bias and auto-correlation with improved numerical stability.
-- **Vectorized NIST SP 800-22 Suite**: High-performance implementations of Monobit, Runs, and Block Frequency tests.
-- **High Performance**: Vectorized bit extraction and statistical testing using NumPy `unpackbits` and efficient reshaping.
+- **Advanced Post-Processing**: Optimized ZCA whitening to eliminate correlations while maintaining high entropy.
+- **Robust NIST SP 800-22 Suite**: High-performance implementations of:
+  - Monobit Frequency Test
+  - Runs Test
+  - Block Frequency Test
+  - **Serial Test** (New: Analyzes frequency of overlapping bit patterns)
+- **Robustness & Reliability**: 
+  - Comprehensive input validation and numerical stabilization.
+  - Centralized logging with verbose mode for debugging.
+  - Robust error handling for SVD and I/O operations.
 
 ## 🛠️ Installation
 

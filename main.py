@@ -5,6 +5,8 @@ from src.nist_tests import run_all_tests
 import sys
 import logging
 
+logger = logging.getLogger(__name__)
+
 def setup_logging(verbose: bool = False):
     level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(

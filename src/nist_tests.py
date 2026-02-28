@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 from scipy import special
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
