@@ -1,6 +1,10 @@
 import numpy as np
+import logging
 from scipy import linalg
-from typing import Tuple
+from typing import Tuple, Optional
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class ZCAWhitening:
     """
@@ -11,23 +15,33 @@ class ZCAWhitening:
     """
     def __init__(self, epsilon: float = 1e-5):
         self.epsilon = epsilon
-        self.zca_matrix = None
-        self.mean = None
+        self.zca_matrix: Optional[np.ndarray] = None
+        self.mean: Optional[np.ndarray] = None
 
-    def fit(self, x: np.ndarray):
+    def fit(self, x: np.ndarray) -> "ZCAWhitening":
         """
         Computes the ZCA transformation matrix from the input data.
         X should be of shape (n_samples, n_features)
         """
+        if x.ndim != 2:
+            raise ValueError(f"Expected 2D array, got {x.ndim}D.")
+        if x.shape[0] <= 1:
+            raise ValueError("Need more than one sample to compute covariance.")
+
+        logger.debug(f"Fitting ZCA on data of shape {x.shape}")
         self.mean = np.mean(x, axis=0)
         x_centered = x - self.mean
         
         # Compute covariance matrix with safety check
         cov = np.cov(x_centered, rowvar=False)
         
-        # Singular Value Decomposition
-        u, s, v = linalg.svd(cov)
-        
+        try:
+            # Singular Value Decomposition
+            u, s, v = linalg.svd(cov)
+        except linalg.LinAlgError as e:
+            logger.error(f"SVD failed: {e}")
+            raise ValueError("Covariance matrix SVD failed. Data might be highly singular.") from e
+            
         # ZCA Matrix: U * diag(1/sqrt(S + epsilon)) * U^T
         # Using a more robust epsilon handling
         s_inv = 1.0 / np.sqrt(s + self.epsilon)
@@ -50,9 +64,10 @@ class VacuumFluctuationSimulator:
     in its quadrature amplitudes (X and P).
     """
     
-    def __init__(self, shot_noise_variance: float = 1.0, sampling_rate: int = 1000000):
+    def __init__(self, shot_noise_variance: float = 1.0):
+        if shot_noise_variance <= 0:
+            raise ValueError("Shot noise variance must be positive.")
         self.shot_noise_variance = shot_noise_variance
-        self.sampling_rate = sampling_rate
         self.sigma = np.sqrt(shot_noise_variance)
 
     def generate_raw_quadratures(self, n_samples: int) -> np.ndarray:
@@ -60,6 +75,9 @@ class VacuumFluctuationSimulator:
         Generates raw quadrature data following a Gaussian distribution
         centered at 0 with variance proportional to shot noise.
         """
+        if n_samples <= 0:
+            raise ValueError("Number of samples must be positive.")
+        logger.debug(f"Generating {n_samples} raw quadrature samples")
         # Vacuum fluctuations in quadrature follow a Gaussian distribution
         return np.random.normal(0, self.sigma, n_samples)
 
@@ -67,16 +85,24 @@ class VacuumFluctuationSimulator:
         """
         Digitizes the analog quantum signal into N-bit integers using vectorized normalization.
         """
+        if data.size == 0:
+            return np.array([], dtype=np.uint8)
+        if bits < 1 or bits > 16:
+            raise ValueError("Bits must be between 1 and 16.")
+
         # Linear quantization
         min_val = np.min(data)
         max_val = np.max(data)
         
         if max_val == min_val:
+            logger.warning("Data is constant, cannot normalize effectively.")
             return np.zeros(data.shape, dtype=np.uint8)
             
         # Vectorized rescaling to [0, 2^bits - 1]
-        quantized = ((data - min_val) / (max_val - min_val) * (2**bits - 1))
-        return quantized.astype(np.uint8)
+        # Using a safer approach with clipping to avoid overflow before conversion
+        rescaled = (data - min_val) / (max_val - min_val) * (2**bits - 1)
+        quantized = np.clip(np.round(rescaled), 0, 2**bits - 1)
+        return quantized.astype(np.uint8 if bits <= 8 else np.uint16)
 
     def extract_bits(self, quantized_data: np.ndarray, bits_per_sample: int = 8) -> np.ndarray:
         """

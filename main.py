@@ -3,6 +3,15 @@ import numpy as np
 from src.qrng_core import VacuumFluctuationSimulator, ZCAWhitening
 from src.nist_tests import run_all_tests
 import sys
+import logging
+
+def setup_logging(verbose: bool = False):
+    level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        stream=sys.stdout
+    )
 
 def main():
     parser = argparse.ArgumentParser(description="Quantum Random Number Generator (QRNG) - Vacuum Fluctuations & ZCA Whitening")
@@ -10,8 +19,10 @@ def main():
     parser.add_argument("-o", "--output", type=str, help="Output file to save random bytes")
     parser.add_argument("--test", action="store_true", help="Run NIST statistical tests on generated data")
     parser.add_argument("--features", type=int, default=8, help="Number of features for ZCA whitening (window size)")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
     
     args = parser.parse_args()
+    setup_logging(args.verbose)
     
     # Initialize components
     simulator = VacuumFluctuationSimulator()

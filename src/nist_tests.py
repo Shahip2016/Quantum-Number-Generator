@@ -1,5 +1,8 @@
 import numpy as np
+import logging
 from scipy import special
+
+logger = logging.getLogger(__name__)
 
 def monobit_test(bitstream: np.ndarray) -> float:
     """
@@ -55,7 +58,8 @@ def block_frequency_test(bitstream: np.ndarray, block_size: int = 128) -> float:
     p_value = special.gammaincc(n_blocks / 2, chi_square / 2)
     return p_value
 
-def run_all_tests(bitstream: np.ndarray):
+def run_all_tests(bitstream: np.ndarray) -> None:
+    logger.info("Starting NIST Statistical Tests")
     print("--- NIST Statistical Test Results ---")
     p_monobit = monobit_test(bitstream)
     p_runs = runs_test(bitstream)
