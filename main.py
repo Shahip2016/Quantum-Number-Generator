@@ -24,47 +24,59 @@ def main():
     args = parser.parse_args()
     setup_logging(args.verbose)
     
-    # Initialize components
-    simulator = VacuumFluctuationSimulator()
-    zca = ZCAWhitening()
-    
-    # 1 byte = 8 bits. We need num_bytes * 8 bits.
-    # To use ZCA, we need samples in (samples, features) shape.
-    # To use ZCA, we need samples in (samples, features) shape.
-    # Each sample will yield N bits (where N is the bit depth of quantization).
-    # Since we use 8-bit quantization, 1 sample = 8 bits = 1 byte.
-    n_samples = args.num_bytes // args.features + (1 if args.num_bytes % args.features != 0 else 0)
-    total_samples = n_samples * args.features
-    
-    # 1. Generate Raw Quadrature Data
-    raw_data = simulator.generate_raw_quadratures(total_samples).reshape(n_samples, args.features)
-    
-    # 2. Apply ZCA Whitening
-    zca.fit(raw_data)
-    whitened_data = zca.transform(raw_data).flatten()
-    
-    # 3. Quantize and Extract Bits
-    # Quantize only what we need (approximately)
-    quantized = simulator.quantize_data(whitened_data, bits=8)
-    
-    # Extract bits from the quantized bytes
-    bitstream = simulator.extract_bits(quantized)
-    
-    # Slice bitstream to exact number of requested bits (num_bytes * 8)
-    bitstream = bitstream[:args.num_bytes * 8]
-    
-    # Convert bitstream to actual bytes
-    byte_array = np.packbits(bitstream)
-    
-    print(f"Successfully generated {len(byte_array)} bytes of quantum randomness.")
-    
-    if args.output:
-        with open(args.output, "wb") as f:
-            f.write(byte_array.tobytes())
-        print(f"Saved to {args.output}")
+    if args.num_bytes <= 0:
+        logger.error("Error: --num_bytes must be a positive integer.")
+        sys.exit(1)
+
+    try:
+        # Initialize components
+        logger.info("Initializing QRNG components...")
+        simulator = VacuumFluctuationSimulator()
+        zca = ZCAWhitening()
         
-    if args.test:
-        run_all_tests(bitstream)
+        # 1 sample = 8 bits = 1 byte (with 8-bit quantization)
+        n_samples = args.num_bytes // args.features + (1 if args.num_bytes % args.features != 0 else 0)
+        total_samples = n_samples * args.features
+        
+        logger.info(f"Generating {total_samples} raw samples for {args.num_bytes} bytes...")
+        # 1. Generate Raw Quadrature Data
+        raw_data = simulator.generate_raw_quadratures(total_samples).reshape(n_samples, args.features)
+        
+        # 2. Apply ZCA Whitening
+        logger.debug("Applying ZCA whitening...")
+        zca.fit(raw_data)
+        whitened_data = zca.transform(raw_data).flatten()
+        
+        # 3. Quantize and Extract Bits
+        logger.debug("Quantizing data...")
+        quantized = simulator.quantize_data(whitened_data, bits=8)
+        
+        # Extract bits from the quantized bytes
+        bitstream = simulator.extract_bits(quantized)
+        
+        # Slice bitstream to exact number of requested bits (num_bytes * 8)
+        bitstream = bitstream[:args.num_bytes * 8]
+        
+        # Convert bitstream to actual bytes
+        byte_array = np.packbits(bitstream)
+        
+        logger.info(f"Successfully generated {len(byte_array)} bytes of quantum randomness.")
+        
+        if args.output:
+            try:
+                with open(args.output, "wb") as f:
+                    f.write(byte_array.tobytes())
+                logger.info(f"Saved random data to {args.output}")
+            except IOError as e:
+                logger.error(f"Failed to write output file: {e}")
+                sys.exit(1)
+            
+        if args.test:
+            run_all_tests(bitstream)
+
+    except Exception as e:
+        logger.exception(f"An unexpected error occurred during QRNG execution: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
