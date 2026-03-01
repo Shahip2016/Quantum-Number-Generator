@@ -9,15 +9,9 @@ A high-performance Quantum Random Number Generator (QRNG) simulator based on **v
 
 - **Quantum Physics Simulation**: Models the Gaussian distribution of vacuum fluctuations.
 - **Advanced Post-Processing**: Optimized ZCA whitening to eliminate correlations while maintaining high entropy.
-- **Robust NIST SP 800-22 Suite**: High-performance implementations of:
-  - Monobit Frequency Test
-  - Runs Test
-  - Block Frequency Test
-  - **Serial Test** (New: Analyzes frequency of overlapping bit patterns)
-- **Robustness & Reliability**: 
-  - Comprehensive input validation and numerical stabilization.
-  - Centralized logging with verbose mode for debugging.
-  - Robust error handling for SVD and I/O operations.
+- **Robust NIST SP 800-22 Suite**: High-performance implementations.
+- **Modern Web Interface**: Premium glassmorphism UI for interactive generation and visualization.
+- **Robustness & Reliability**: Comprehensive validation and numerical stabilization.
 
 ## 🛠️ Installation
 
@@ -29,13 +23,20 @@ pip install -r requirements.txt
 
 ## 📖 Usage
 
-### Generate Random Bytes
+### Web Interface
+Launch the premium UI:
+```bash
+python web/app.py
+```
+Then navigate to `http://localhost:5000` in your browser.
+
+### Generate Random Bytes (CLI)
 Generate 1024 bytes and save to `output.bin`:
 ```bash
 python main.py -n 1024 -o output.bin
 ```
 
-### Run NIST Verification
+### Run NIST Verification (CLI)
 Generate 1MB of data and run statistical tests:
 ```bash
 python main.py -n 1048576 --test
