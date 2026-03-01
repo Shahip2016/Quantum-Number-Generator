@@ -100,6 +100,7 @@ h1 {
 .gradient-text {
     background: linear-gradient(to right, var(--primary), var(--secondary));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -152,6 +153,12 @@ input[type="number"] {
     width: 150px;
 }
 
+input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+}
+
 .button-group {
     display: flex;
     gap: 1rem;
@@ -178,9 +185,34 @@ input[type="number"] {
     color: white;
 }
 
-.btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.2);
+.btn:active {
+    transform: translateY(0);
+}
+
+.secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Loading Animation */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.loading {
+    animation: pulse 1.5s infinite;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 2rem;
 }
 
 /* Output Layout */
