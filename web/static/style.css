@@ -46,13 +46,36 @@ body {
     animation: move 20s infinite alternate;
 }
 
-.blob-1 { background: var(--primary); top: -10%; left: -10%; }
-.blob-2 { background: var(--secondary); bottom: -10%; right: -10%; animation-delay: -5s; }
-.blob-3 { background: #3b82f6; top: 40%; left: 30%; width: 300px; height: 300px; animation-delay: -10s; }
+.blob-1 {
+    background: var(--primary);
+    top: -10%;
+    left: -10%;
+}
+
+.blob-2 {
+    background: var(--secondary);
+    bottom: -10%;
+    right: -10%;
+    animation-delay: -5s;
+}
+
+.blob-3 {
+    background: #3b82f6;
+    top: 40%;
+    left: 30%;
+    width: 300px;
+    height: 300px;
+    animation-delay: -10s;
+}
 
 @keyframes move {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(100px, 50px); }
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(100px, 50px);
+    }
 }
 
 /* Glassmorphism Container */
@@ -185,7 +208,52 @@ canvas {
     border-radius: 12px;
 }
 
-.hidden { display: none; }
+/* NIST Results */
+.test-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.test-item {
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+}
+
+.test-item.pass {
+    border-left: 4px solid #10b981;
+}
+
+.test-item.fail {
+    border-left: 4px solid #ef4444;
+}
+
+.test-status {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+.pass .test-status {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.fail .test-status {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.hidden {
+    display: none;
+}
 
 footer {
     text-align: center;

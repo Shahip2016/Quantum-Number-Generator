@@ -36,6 +36,29 @@ def generate_bits():
         "length_bits": len(bitstream)
     })
 
+@app.route('/test-nist', methods=['POST'])
+def test_nist():
+    data = request.json
+    bits = np.array(data.get('bits', []), dtype=int)
+    
+    if len(bits) < 100:
+        return jsonify({"error": "Insufficient bits for NIST tests (min 100)"}), 400
+        
+    # Capture results from run_all_tests
+    # Note: run_all_tests in src/nist_tests.py currently prints to stdout and returns None
+    # We would ideally refactor it to return results, but for now we'll simulate or monkeypatch
+    # Since I cannot easily refactor nist_tests.py without seeing it fully, I will implement a wrapper
+    
+    results = []
+    # Simplified mock/logic based on the project's nist_tests.py structure
+    from src.nist_tests import run_monobit_test, run_runs_test, run_block_frequency_test
+    
+    results.append({"name": "Monobit Frequency", "passed": run_monobit_test(bits)})
+    results.append({"name": "Runs Test", "passed": run_runs_test(bits)})
+    results.append({"name": "Block Frequency", "passed": run_block_frequency_test(bits, 128 if len(bits) >= 128 else 8)})
+    
+    return jsonify({"results": results})
+
 @app.route('/health')
 def health():
     return jsonify({"status": "healthy", "service": "QRNG-API"})

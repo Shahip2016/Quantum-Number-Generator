@@ -28,6 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Visualize
             drawEntropy(data.bits);
 
+            // Store bits for testing
+            window.lastBitstream = data.bits;
+            document.getElementById('nist-results').classList.add('hidden');
+
         } catch (error) {
             console.error('Generation failed:', error);
             bitDisplay.textContent = 'Error generating bits. Check console.';
@@ -51,5 +55,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function runNistTests() {
+        if (!window.lastBitstream) {
+            alert('Generate bits first!');
+            return;
+        }
+
+        const testBtn = document.getElementById('test-btn');
+        const resultsSection = document.getElementById('nist-results');
+        const testGrid = document.getElementById('test-grid');
+
+        testBtn.disabled = true;
+        testBtn.textContent = 'Testing...';
+        resultsSection.classList.remove('hidden');
+        testGrid.innerHTML = '<div class="loading">Running Statistical Tests...</div>';
+
+        try {
+            const response = await fetch('/test-nist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bits: window.lastBitstream })
+            });
+            const data = await response.json();
+
+            testGrid.innerHTML = data.results.map(res => `
+                <div class="test-item ${res.passed ? 'pass' : 'fail'}">
+                    <span class="test-name">${res.name}</span>
+                    <span class="test-status">${res.passed ? 'PASSED' : 'FAILED'}</span>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            console.error('NIST tests failed:', error);
+            testGrid.innerHTML = '<div class="error">Test suite execution failed.</div>';
+        } finally {
+            testBtn.disabled = false;
+            testBtn.textContent = 'Run NIST Tests';
+        }
+    }
+
     generateBtn.addEventListener('click', generateQuantumBits);
+    document.getElementById('test-btn').addEventListener('click', runNistTests);
 });
