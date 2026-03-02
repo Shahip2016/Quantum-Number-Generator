@@ -27,14 +27,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`/generate?n=${n}`);
             const data = await response.json();
 
-            // Update Display
-            bitDisplay.textContent = data.bits.join('');
+            // Store results
+            window.lastData = data;
+
+            // Update Display (show first 1000 bits only for performance if very large)
+            const preview = data.bits.length > 2000 ? data.bits.slice(0, 2000).join('') + '...' : data.bits.join('');
+            bitDisplay.textContent = preview;
 
             // Visualize
             drawEntropy(data.bits);
 
-            // Store bits for testing
-            window.lastBitstream = data.bits;
+            // Hide previous test results
             document.getElementById('nist-results').classList.add('hidden');
 
             statusText.textContent = 'Quantum Field Stable';
@@ -53,21 +56,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drawEntropy(bits) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const mode = document.getElementById('viz-mode').value;
         const size = Math.ceil(Math.sqrt(bits.length));
         const pSize = canvas.width / size;
 
         for (let i = 0; i < bits.length; i++) {
             const x = (i % size) * pSize;
             const y = Math.floor(i / size) * pSize;
-            const val = bits[i] * 255;
-            ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
+
+            if (mode === 'bw') {
+                const val = bits[i] * 255;
+                ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
+            } else {
+                // Spectral mode: use index and bit value for color
+                const hue = (i / bits.length) * 360;
+                const lum = bits[i] ? 60 : 20;
+                ctx.fillStyle = `hsl(${hue}, 80%, ${lum}%)`;
+            }
             ctx.fillRect(x, y, pSize, pSize);
         }
     }
 
+    function copyHex() {
+        if (!window.lastData || !window.lastData.hex) return;
+        navigator.clipboard.writeText(window.lastData.hex).then(() => {
+            const btn = document.getElementById('copy-hex-btn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            btn.style.color = 'var(--success)';
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.style.color = '';
+            }, 2000);
+        });
+    }
+
+    function downloadBinary() {
+        if (!window.lastData || !window.lastData.hex) return;
+        const hex = window.lastData.hex;
+        const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        const blob = new Blob([bytes], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `quantum_entropy_${Date.now()}.bin`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     async function runNistTests() {
-        if (!window.lastBitstream) {
-            alert('Generate bits first!');
+        if (!window.lastData || !window.lastData.bits) {
+            alert('Generate entropy first!');
             return;
         }
 
@@ -76,15 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const testGrid = document.getElementById('test-grid');
 
         testBtn.disabled = true;
-        testBtn.textContent = 'Testing...';
+        testBtn.textContent = 'Certifying...';
         resultsSection.classList.remove('hidden');
-        testGrid.innerHTML = '<div class="loading">Running Statistical Tests...</div>';
+        testGrid.innerHTML = '<div class="loading">Statistically validating quantum bitstream...</div>';
 
         try {
             const response = await fetch('/test-nist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bits: window.lastBitstream })
+                body: JSON.stringify({ bits: window.lastData.bits })
             });
             const data = await response.json();
 
@@ -97,13 +138,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('NIST tests failed:', error);
-            testGrid.innerHTML = '<div class="error">Test suite execution failed.</div>';
+            testGrid.innerHTML = '<div class="error">Validation suite execution failed.</div>';
         } finally {
             testBtn.disabled = false;
-            testBtn.textContent = 'Run NIST Tests';
+            testBtn.textContent = 'NIST Certification';
         }
     }
 
     generateBtn.addEventListener('click', generateQuantumBits);
     document.getElementById('test-btn').addEventListener('click', runNistTests);
+    document.getElementById('copy-hex-btn').addEventListener('click', copyHex);
+    document.getElementById('download-bin-btn').addEventListener('click', downloadBinary);
+    document.getElementById('viz-mode').addEventListener('change', () => {
+        if (window.lastData && window.lastData.bits) drawEntropy(window.lastData.bits);
+    });
 });
