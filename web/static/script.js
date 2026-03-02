@@ -15,8 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function generateQuantumBits() {
         const n = numBytesInput.value;
+        const statusText = document.getElementById('status-text');
+        const statusDot = document.querySelector('.status-dot');
+
         generateBtn.disabled = true;
-        generateBtn.textContent = 'Generating...';
+        generateBtn.textContent = 'Capturing...';
+        statusText.textContent = 'Capturing Vacuum Fluctuations...';
+        statusDot.style.background = 'var(--secondary)';
 
         try {
             const response = await fetch(`/generate?n=${n}`);
@@ -32,12 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
             window.lastBitstream = data.bits;
             document.getElementById('nist-results').classList.add('hidden');
 
+            statusText.textContent = 'Quantum Field Stable';
+            statusDot.style.background = 'var(--success)';
+
         } catch (error) {
             console.error('Generation failed:', error);
             bitDisplay.textContent = 'Error generating bits. Check console.';
+            statusText.textContent = 'Field Instability Detected';
+            statusDot.style.background = '#ef4444';
         } finally {
             generateBtn.disabled = false;
-            generateBtn.textContent = 'Generate Quantum Bits';
+            generateBtn.textContent = 'Generate Entropy';
         }
     }
 
