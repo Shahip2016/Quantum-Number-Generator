@@ -340,6 +340,16 @@ input[type="number"]:focus {
     border-color: var(--text-dim);
 }
 
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.section-desc {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
 .mono-display {
     font-family: 'JetBrains Mono', monospace;
     background: rgba(0, 0, 0, 0.4);
@@ -373,44 +383,46 @@ canvas {
 /* NIST Results */
 .test-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.25rem;
     margin-top: 1.5rem;
 }
 
 .test-item {
-    padding: 1.25rem;
-    border-radius: 18px;
+    padding: 1.5rem;
+    border-radius: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--glass-border);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .test-item:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateX(5px);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .test-item.pass {
-    border-left: 5px solid var(--success);
+    border-left: 6px solid var(--success);
 }
 
 .test-item.fail {
-    border-left: 5px solid var(--secondary);
+    border-left: 6px solid var(--secondary);
 }
 
 .test-name {
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .test-status {
     font-size: 0.75rem;
     font-weight: 800;
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
     letter-spacing: 0.5px;
 }
 
@@ -430,16 +442,23 @@ canvas {
 
 footer {
     text-align: center;
-    margin-top: 3rem;
+    margin-top: 4rem;
+    padding-bottom: 2rem;
     color: var(--text-dim);
     font-size: 0.8rem;
     opacity: 0.6;
 }
 
 @media (max-width: 900px) {
+    .glass-container {
+        padding: 1.5rem;
+        width: 100%;
+    }
+
     .controls {
         flex-direction: column;
         align-items: stretch;
+        gap: 1.5rem;
     }
 
     .output-grid {
@@ -447,6 +466,20 @@ footer {
     }
 
     h1 {
-        font-size: 2.5rem;
+        font-size: 2.8rem;
+        letter-spacing: -2px;
+    }
+
+    .glass-panel {
+        padding: 1.5rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
