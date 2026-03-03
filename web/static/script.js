@@ -1,4 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Theme toggle
+    const savedTheme = localStorage.getItem('qrng-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('qrng-theme', next);
+        updateThemeIcon(next);
+    });
+
+    function updateThemeIcon(theme) {
+        document.getElementById('theme-icon-moon').style.display = theme === 'dark' ? 'block' : 'none';
+        document.getElementById('theme-icon-sun').style.display = theme === 'light' ? 'block' : 'none';
+    }
+
     const generateBtn = document.getElementById('generate-btn');
     const numBytesInput = document.getElementById('num-bytes');
     const bitDisplay = document.getElementById('bit-display');
