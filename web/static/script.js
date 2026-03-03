@@ -157,7 +157,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             testGrid.innerHTML = data.results.map(res => `
                 <div class="test-item ${res.passed ? 'pass' : 'fail'}">
-                    <span class="test-name">${res.name}</span>
+                    <div class="test-info">
+                        <span class="test-name">${res.name}</span>
+                        <div class="pvalue-bar-track">
+                            <div class="pvalue-bar-fill ${res.passed ? 'pass' : 'fail'}" style="width:${Math.min(res.p_value * 100, 100)}%"></div>
+                        </div>
+                        <span class="pvalue-label">p = ${res.p_value.toFixed(4)}</span>
+                    </div>
                     <span class="test-status">${res.passed ? 'PASSED' : 'FAILED'}</span>
                 </div>
             `).join('');

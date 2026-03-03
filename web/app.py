@@ -43,19 +43,25 @@ def test_nist():
     
     if len(bits) < 100:
         return jsonify({"error": "Insufficient bits for NIST tests (min 100)"}), 400
-        
-    # Capture results from run_all_tests
-    # Note: run_all_tests in src/nist_tests.py currently prints to stdout and returns None
-    # We would ideally refactor it to return results, but for now we'll simulate or monkeypatch
-    # Since I cannot easily refactor nist_tests.py without seeing it fully, I will implement a wrapper
+    
+    from src.nist_tests import monobit_test, runs_test, block_frequency_test, serial_test
     
     results = []
-    # Simplified mock/logic based on the project's nist_tests.py structure
-    from src.nist_tests import run_monobit_test, run_runs_test, run_block_frequency_test
     
-    results.append({"name": "Monobit Frequency", "passed": run_monobit_test(bits)})
-    results.append({"name": "Runs Test", "passed": run_runs_test(bits)})
-    results.append({"name": "Block Frequency", "passed": run_block_frequency_test(bits, 128 if len(bits) >= 128 else 8)})
+    p_mono = float(monobit_test(bits))
+    results.append({"name": "Monobit Frequency", "passed": p_mono > 0.01, "p_value": round(p_mono, 6)})
+    
+    p_runs = float(runs_test(bits))
+    results.append({"name": "Runs Test", "passed": p_runs > 0.01, "p_value": round(p_runs, 6)})
+    
+    block_size = 128 if len(bits) >= 128 else 8
+    p_block = float(block_frequency_test(bits, block_size))
+    results.append({"name": "Block Frequency", "passed": p_block > 0.01, "p_value": round(p_block, 6)})
+    
+    p_s1, p_s2 = serial_test(bits)
+    p_s1, p_s2 = float(p_s1), float(p_s2)
+    results.append({"name": "Serial Test (∇ψ²)", "passed": p_s1 > 0.01, "p_value": round(p_s1, 6)})
+    results.append({"name": "Serial Test (∇²ψ²)", "passed": p_s2 > 0.01, "p_value": round(p_s2, 6)})
     
     return jsonify({"results": results})
 
