@@ -24,8 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
         statusDot.style.background = 'var(--secondary)';
 
         try {
+            const t0 = performance.now();
             const response = await fetch(`/generate?n=${n}`);
             const data = await response.json();
+            const genTime = ((performance.now() - t0) / 1000).toFixed(2);
 
             // Store results
             window.lastData = data;
@@ -36,6 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Visualize
             drawEntropy(data.bits);
+
+            // Update stats dashboard
+            updateStats(data.bits.length, genTime);
 
             // Hide previous test results
             document.getElementById('nist-results').classList.add('hidden');
@@ -143,6 +148,33 @@ document.addEventListener('DOMContentLoaded', () => {
             testBtn.disabled = false;
             testBtn.textContent = 'NIST Certification';
         }
+    }
+
+    function updateStats(totalBits, genTimeSec) {
+        const dashboard = document.getElementById('stats-dashboard');
+        dashboard.classList.remove('hidden');
+
+        // Entropy rate: ratio of 1s (ideal = 0.5 → 1.0 bit/bit)
+        const bits = window.lastData.bits;
+        const ones = bits.reduce((s, b) => s + b, 0);
+        const p = ones / bits.length;
+        const entropy = (p > 0 && p < 1) ? -(p * Math.log2(p) + (1 - p) * Math.log2(1 - p)) : 0;
+
+        const throughput = (totalBits / parseFloat(genTimeSec)).toFixed(0);
+
+        const updates = [
+            ['stat-total-bits', totalBits.toLocaleString()],
+            ['stat-entropy-rate', entropy.toFixed(4) + ' b/b'],
+            ['stat-gen-time', genTimeSec + ' s'],
+            ['stat-throughput', Number(throughput).toLocaleString() + ' b/s'],
+        ];
+        updates.forEach(([id, val]) => {
+            const el = document.getElementById(id);
+            el.textContent = val;
+            el.classList.remove('animate');
+            void el.offsetWidth; // reflow
+            el.classList.add('animate');
+        });
     }
 
     generateBtn.addEventListener('click', generateQuantumBits);
