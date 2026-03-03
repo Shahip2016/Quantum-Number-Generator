@@ -613,6 +613,78 @@ canvas {
     font-size: 0.8rem;
 }
 
+/* History Timeline */
+.history-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+    transition: max-height 0.4s ease;
+}
+
+.history-timeline.collapsed {
+    max-height: 0;
+    overflow: hidden;
+}
+
+.history-timeline::-webkit-scrollbar {
+    width: 5px;
+}
+
+.history-timeline::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.history-entry {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-left: 4px solid var(--primary);
+    border-radius: 12px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.history-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.history-detail {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+.history-detail span {
+    color: var(--text-dim);
+}
+
+.history-detail strong {
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+}
+
 .hidden {
     display: none;
 }

@@ -63,6 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Draw histogram
             drawHistogram(data.bits);
 
+            // Add to history
+            addHistoryEntry(data, genTime);
+
             // Hide previous test results
             document.getElementById('nist-results').classList.add('hidden');
 
@@ -266,6 +269,59 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     histCanvas.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+
+    // --- History ---
+    function getHistory() {
+        try { return JSON.parse(sessionStorage.getItem('qrng-history') || '[]'); }
+        catch { return []; }
+    }
+
+    function saveHistory(h) {
+        sessionStorage.setItem('qrng-history', JSON.stringify(h.slice(-20))); // keep last 20
+    }
+
+    function addHistoryEntry(data, genTime) {
+        const h = getHistory();
+        const bits = data.bits;
+        const ones = bits.reduce((s, b) => s + b, 0);
+        const p = ones / bits.length;
+        const entropy = (p > 0 && p < 1) ? -(p * Math.log2(p) + (1 - p) * Math.log2(1 - p)) : 0;
+        h.push({
+            time: new Date().toLocaleTimeString(),
+            bytes: bits.length / 8,
+            entropy: entropy.toFixed(4),
+            hexPreview: data.hex.substring(0, 16),
+            genTime
+        });
+        saveHistory(h);
+        renderHistory(h);
+    }
+
+    function renderHistory(h) {
+        const section = document.getElementById('history-section');
+        section.classList.remove('hidden');
+        const tl = document.getElementById('history-timeline');
+        tl.innerHTML = h.slice().reverse().map(e => `
+            <div class="history-entry">
+                <span class="history-time">${e.time}</span>
+                <div class="history-detail">
+                    <span>${e.bytes.toLocaleString()} B</span>
+                    <span>H: <strong>${e.entropy}</strong></span>
+                    <span>${e.genTime}s</span>
+                    <span>0x${e.hexPreview}…</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Restore history on load
+    const savedHistory = getHistory();
+    if (savedHistory.length > 0) renderHistory(savedHistory);
+
+    // Collapse toggle
+    document.getElementById('history-toggle').addEventListener('click', () => {
+        document.getElementById('history-timeline').classList.toggle('collapsed');
+    });
 
     generateBtn.addEventListener('click', generateQuantumBits);
     document.getElementById('test-btn').addEventListener('click', runNistTests);
