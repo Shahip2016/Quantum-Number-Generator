@@ -11,6 +11,11 @@ A high-performance Quantum Random Number Generator (QRNG) simulator based on **v
 - **Advanced Post-Processing**: Optimized ZCA whitening to eliminate correlations while maintaining high entropy.
 - **Robust NIST SP 800-22 Suite**: High-performance implementations.
 - **Modern Web Interface**: Premium glassmorphism UI for interactive generation and visualization.
+- **Real-Time Statistics**: Monitor total bits, entropy rates, and generation throughput.
+- **Interactive Visualizations**: High-fidelity entropy canvas and byte-frequency histograms.
+- **Dynamic Themes**: Seamless Dark/Light mode switching with local persistence.
+- **Session History**: Track generation events with detailed metadata and hex previews.
+- **NIST Verification Suite**: Integrated SP 800-22 tests with real-time p-value visualization.
 - **Robustness & Reliability**: Comprehensive validation and numerical stabilization.
 
 ## 🛠️ Installation
