@@ -60,6 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update stats dashboard
             updateStats(data.bits.length, genTime);
 
+            // Draw histogram
+            drawHistogram(data.bits);
+
             // Hide previous test results
             document.getElementById('nist-results').classList.add('hidden');
 
@@ -194,6 +197,69 @@ document.addEventListener('DOMContentLoaded', () => {
             el.classList.add('animate');
         });
     }
+
+    function drawHistogram(bits) {
+        const section = document.getElementById('histogram-section');
+        section.classList.remove('hidden');
+
+        const hCanvas = document.getElementById('histogram-canvas');
+        const hCtx = hCanvas.getContext('2d');
+        hCanvas.width = hCanvas.parentElement.clientWidth;
+        hCanvas.height = 200;
+
+        // Pack bits into bytes and count frequencies
+        const freq = new Array(256).fill(0);
+        for (let i = 0; i + 7 < bits.length; i += 8) {
+            let byte = 0;
+            for (let b = 0; b < 8; b++) byte = (byte << 1) | bits[i + b];
+            freq[byte]++;
+        }
+        const maxFreq = Math.max(...freq);
+        if (maxFreq === 0) return;
+
+        const padding = { top: 10, bottom: 4, left: 2, right: 2 };
+        const chartW = hCanvas.width - padding.left - padding.right;
+        const chartH = hCanvas.height - padding.top - padding.bottom;
+        const barW = chartW / 256;
+
+        hCtx.clearRect(0, 0, hCanvas.width, hCanvas.height);
+
+        // Store bar data for tooltip
+        window._histogramBars = [];
+
+        for (let i = 0; i < 256; i++) {
+            const barH = (freq[i] / maxFreq) * chartH;
+            const x = padding.left + i * barW;
+            const y = padding.top + chartH - barH;
+
+            const gradient = hCtx.createLinearGradient(x, y, x, y + barH);
+            gradient.addColorStop(0, '#8b5cf6');
+            gradient.addColorStop(1, '#06b6d4');
+            hCtx.fillStyle = gradient;
+            hCtx.fillRect(x, y, Math.max(barW - 0.5, 1), barH);
+
+            window._histogramBars.push({ x, y, w: barW, h: barH, byte: i, count: freq[i] });
+        }
+    }
+
+    // Histogram tooltip
+    const histCanvas = document.getElementById('histogram-canvas');
+    const tooltip = document.getElementById('histogram-tooltip');
+    histCanvas.addEventListener('mousemove', (e) => {
+        if (!window._histogramBars) return;
+        const rect = histCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const bar = window._histogramBars.find(b => mx >= b.x && mx < b.x + b.w);
+        if (bar) {
+            tooltip.textContent = `Byte 0x${bar.byte.toString(16).toUpperCase().padStart(2, '0')} (${bar.byte}) — Count: ${bar.count}`;
+            tooltip.style.left = (e.pageX + 12) + 'px';
+            tooltip.style.top = (e.pageY - 30) + 'px';
+            tooltip.classList.add('visible');
+        } else {
+            tooltip.classList.remove('visible');
+        }
+    });
+    histCanvas.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
 
     generateBtn.addEventListener('click', generateQuantumBits);
     document.getElementById('test-btn').addEventListener('click', runNistTests);
